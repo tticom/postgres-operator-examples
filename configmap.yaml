@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-init-sql
+  namespace: postgres-operator
+data:
+  init.sql: |
+    -- Create schemas
+    CREATE SCHEMA platform;
+
+    -- Create databases
+    CREATE DATABASE dicom;
+    CREATE DATABASE keycloak;
+
+    -- Create database admin users
+    CREATE USER dicom_admin WITH ENCRYPTED PASSWORD 'dicom_password';
+    CREATE USER keycloak_admin WITH ENCRYPTED PASSWORD 'keycloak_password';
+
+    -- Grant privileges to admin users
+    GRANT ALL PRIVILEGES ON DATABASE dicom TO dicom_admin;
+    GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak_admin;
+
+    -- Grant usage and privileges on schema
+    GRANT USAGE ON SCHEMA platform TO dicom_admin;
+    GRANT USAGE ON SCHEMA platform TO keycloak_admin;
+
+    -- Grant schema ownership to superuser
+    ALTER SCHEMA platform OWNER TO superuser;

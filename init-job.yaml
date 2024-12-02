@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-init
+  namespace: postgres-operator
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres-init
+          image: postgres:16
+          env:
+            - name: PGPASSWORD
+              value: "superuser_password" # Replace with the actual superuser password
+          command: ["sh", "-c", "psql -h postgres-cluster -U superuser -f /pg-init-scripts/init.sql"]
+          volumeMounts:
+            - name: pg-init-scripts
+              mountPath: /pg-init-scripts
+      restartPolicy: OnFailure
+      volumes:
+        - name: pg-init-scripts
+          configMap:
+            name: platform-init-sql
