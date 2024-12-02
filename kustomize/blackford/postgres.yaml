@@ -5,9 +5,15 @@ metadata:
 spec:
   postgresVersion: 16
   users:
-    - name: superuser
-      databases: 
-        - postgres-db
+    - name: postgres
+    - name: keycloak-admin
+      databases:  
+        - keycloak
+      options: 'OWNER'
+    - name: dicom-admin
+      databases:
+        - dicom-store
+      options: 'OWNER'
   instances:
     - name: instance1
       dataVolumeClaimSpec:
@@ -27,3 +33,5 @@ spec:
             resources:
               requests:
                 storage: 1Gi
+        schedules:
+          full: "0 2 * * *"
