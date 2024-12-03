@@ -6,22 +6,24 @@ spec:
   postgresVersion: 16
   users:
     - name: postgres
-    - name: keycloak-admin
-      databases:  
-        - keycloak
-      options: 'OWNER'
-    - name: dicom-admin
-      databases:
-        - dicom-store
-      options: 'OWNER'
   instances:
-    - name: instance1
+    - replicas: 2
       dataVolumeClaimSpec:
         accessModes:
         - "ReadWriteOnce"
         resources:
           requests:
             storage: 1Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  postgres-operator.crunchydata.com/cluster: postgres-cluster
+                  postgres-operator.crunchydata.com/instance-set: "00"
   backups:
     pgbackrest:
       repos:

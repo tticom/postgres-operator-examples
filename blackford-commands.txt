@@ -7,14 +7,14 @@ kubectl apply --server-side -k kustomize/install/default
 # To check on the status of your installation, you can run the following command
 kubectl -n postgres-operator get pods --selector=postgres-operator.crunchydata.com/control-plane=postgres-operator --field-selector=status.phase=Running
 
-#  create a simple Postgres cluster
-kubectl apply -k kustomize/blackford
-
 # track the progress of your cluster
 kubectl -n postgres-operator describe postgresclusters.postgres-operator.crunchydata.com postgres-cluster
 
 # list the pods created
 kubectl get pods -n postgres-operator 
+
+#  create a simple Postgres cluster
+kubectl apply -k kustomize/blackford
 
 # list the secrets
 kubectl get secret --sort-by=.metadata.creationTimestamp -n postgres-operator
@@ -49,10 +49,14 @@ $PG_CLUSTER_PRIMARY_POD = ($PG_CLUSTER_PRIMARY_POD -replace '^pod/', '')
 kubectl -n postgres-operator port-forward $PG_CLUSTER_PRIMARY_POD 5432:5432
 #### PORT FORWARDING ####
 
+kubectl get secret postgres-cluster-pguser-postgres -n postgres-operator -o jsonpath="{.data}" 
+
 
 # Extract secrets
 
 kubectl get secret -n postgres-operator
+
+kubectl get secret postgres-cluster-pguser-postgres -n postgres-operator -o jsonpath="{.data}" 
 
 kubectl get secret postgres-cluster-pguser-postgres -n postgres-operator -o jsonpath="{.data}" 
 kubectl get secret postgres-cluster-pguser-postgres -n postgres-operator -o jsonpath="{.data.password}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
