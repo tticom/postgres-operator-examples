@@ -4,6 +4,8 @@ metadata:
   name: keycloakdb
 spec:
   postgresVersion: 17
+  users:
+    - name: postgres
   instances:
     - replicas: 2
       dataVolumeClaimSpec:
