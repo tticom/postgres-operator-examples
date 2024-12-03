@@ -9,6 +9,8 @@ kubectl -n postgres-operator get pods --selector=postgres-operator.crunchydata.c
 
 #  create a simple Postgres cluster
 kubectl apply -k kustomize/postgres
+kubectl apply -k kustomize/keycloak
+kubectl apply -k kustomize/blackford
 
 # track the progress of your cluster
 kubectl -n postgres-operator describe postgresclusters.postgres-operator.crunchydata.com hippo

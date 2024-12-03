@@ -1,0 +1,89 @@
+
+# https://access.crunchydata.com/documentation/postgres-operator/latest/quickstart
+
+kubectl apply -k kustomize/install/namespace
+kubectl apply --server-side -k kustomize/install/default
+
+# To check on the status of your installation, you can run the following command
+kubectl -n postgres-operator get pods --selector=postgres-operator.crunchydata.com/control-plane=postgres-operator --field-selector=status.phase=Running
+
+#  create a simple Postgres cluster
+kubectl apply -k kustomize/keycloak
+
+# track the progress of your cluster
+kubectl -n postgres-operator describe postgresclusters.postgres-operator.crunchydata.com keycloakdb
+
+# list the pods created
+kubectl get pods -n postgres-operator 
+
+# list the secrets
+kubectl get secret --sort-by=.metadata.creationTimestamp -n postgres-operator
+
+# list the configMaps
+kubectl get cm --sort-by=.metadata.creationTimestamp -n postgres-operator
+
+# Mutating admission Webhooks
+kubectl get Mutatingwebhookconfigurations
+
+# CRDs
+kubectl get Customresourcedefinitions 
+
+# Jobs
+kubectl get job -n postgres-operator 
+
+# Clusters
+kubectl get cluster -n postgres-operator
+
+# Services
+kubectl get svc -n postgres-operator
+
+# Extract secrets
+
+kubectl get secret -n postgres-operator
+
+psql $(kubectl -n postgres-operator get secrets keycloakdb-pguser-keycloakdb -o go-template='{{.data.uri | base64decode}}')
+
+kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.password}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.user}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.dbname}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+# kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.host}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+# kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.jdbc-uri}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+# kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.pgPass}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+# kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.uri}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+
+psql $(kubectl -n postgres-operator get secrets keycloakdb-pguser-keycloakdb -o go-template='{{.data.uri | base64decode}}')
+
+
+# Get the primary pod name
+$PG_CLUSTER_PRIMARY_POD = kubectl get pod -n postgres-operator -o name -l postgres-operator.crunchydata.com/cluster=keycloakdb,postgres-operator.crunchydata.com/role=master
+
+# Remove the 'pod/' prefix from the pod name (if necessary)
+$PG_CLUSTER_PRIMARY_POD = $PG_CLUSTER_PRIMARY_POD -replace '^pod/', ''
+
+# Port forward the PostgreSQL primary pod
+kubectl -n postgres-operator port-forward $PG_CLUSTER_PRIMARY_POD 5432:5432
+
+# $env:PG_CLUSTER_USER_SECRET_NAME="keycloakdb-pguser-postgres"
+
+# PGPASSWORD
+# kubectl get secrets -n postgres-operator "${PG_CLUSTER_USER_SECRET_NAME}" -o go-template='{{.data.password | base64decode}}'
+kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.password}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+
+# PGUSER
+# kubectl get secrets -n postgres-operator "${PG_CLUSTER_USER_SECRET_NAME}" -o go-template='{{.data.user | base64decode}}'
+kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.user}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+
+# PGDATABASE
+# kubectl get secrets -n postgres-operator "${PG_CLUSTER_USER_SECRET_NAME}" -o go-template='{{.data.dbname | base64decode}}'
+kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.dbname}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+
+# PGPASSWORD=$(kubectl get secrets -n postgres-operator "${PG_CLUSTER_USER_SECRET_NAME}" -o go-template='{{.data.password | base64decode}}') \ 
+# PGUSER=$(kubectl get secrets -n postgres-operator "${PG_CLUSTER_USER_SECRET_NAME}" -o go-template='{{.data.user | base64decode}}') \ 
+# PGDATABASE=$(kubectl get secrets -n postgres-operator "${PG_CLUSTER_USER_SECRET_NAME}" -o go-template='{{.data.dbname | base64decode}}') \ 
+
+$env:PGPASSWORD=(kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.password}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) })
+$env:PGUSER=(kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.user}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }) 
+$env:PGDATABASE=(kubectl get secret keycloakdb-pguser-postgres -n postgres-operator -o jsonpath="{.data.dbname}" | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }) 
+
+psql -h localhost
+CREATE SCHEMA keycloakdb AUTHORIZATION zhino;
