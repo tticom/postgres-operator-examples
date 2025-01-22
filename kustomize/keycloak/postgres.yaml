@@ -3,9 +3,13 @@ kind: PostgresCluster
 metadata:
   name: keycloakdb
 spec:
+<<<<<<< HEAD
   postgresVersion: 16
   users:
     - name: postgres
+=======
+  postgresVersion: 17
+>>>>>>> 103226888aee893a8ff96e2d7f1d9687b49cae0f
   instances:
     - replicas: 2
       dataVolumeClaimSpec:
