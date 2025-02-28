@@ -24,6 +24,11 @@ spec:
                 matchLabels:
                   postgres-operator.crunchydata.com/cluster: postgres-cluster
                   postgres-operator.crunchydata.com/instance-set: "00"
+  tls:
+    caSecret:
+      name: pgo-root-cacert
+    certificateSecret:
+      name: postgres-cluster-instance1-qpww-certs
   backups:
     pgbackrest:
       repos:
